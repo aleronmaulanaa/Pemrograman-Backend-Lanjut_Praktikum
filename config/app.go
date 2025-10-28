@@ -106,5 +106,16 @@ func NewApp() *fiber.App {
 	pekerjaan.Delete("/hard/:id", middleware.RoleMiddleware("admin", "user"), service.HardDeletePekerjaanRBAC)
 	pekerjaan.Delete("/:id", middleware.RoleMiddleware("admin", "user"), service.DeletePekerjaanRBAC)
 
+	
+// ===== PEKERJAAN (MongoDB) =====
+pekerjaanMongo := api.Group("/pekerjaan-mongo", middleware.JWTMiddleware)
+
+pekerjaanMongo.Get("/", middleware.RoleMiddleware("admin", "user"), service.GetAllPekerjaanMongo)
+pekerjaanMongo.Get("/:id", middleware.RoleMiddleware("admin", "user"), service.GetPekerjaanByIDMongo)
+pekerjaanMongo.Post("/", middleware.RoleMiddleware("admin"), service.CreatePekerjaanMongo)
+pekerjaanMongo.Delete("/:id", middleware.RoleMiddleware("admin"), service.SoftDeletePekerjaanMongo)
+pekerjaanMongo.Put("/restore/:id", middleware.RoleMiddleware("admin"), service.RestorePekerjaanMongo)
+pekerjaanMongo.Delete("/hard/:id", middleware.RoleMiddleware("admin"), service.HardDeletePekerjaanMongo)
+
 	return app
 }

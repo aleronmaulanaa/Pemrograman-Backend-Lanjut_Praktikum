@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"praktikum4-crud/config"
@@ -16,7 +17,10 @@ func main() {
 	}
 
 	database.ConnectDB()
+	database.ConnectMongo()
+
 	defer database.DB.Close()
+	defer database.MongoClient.Disconnect(context.Background())
 
 	app := config.NewApp()
 
