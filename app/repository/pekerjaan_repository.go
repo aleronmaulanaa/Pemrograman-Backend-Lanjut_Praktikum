@@ -212,12 +212,13 @@ func HardDeletePekerjaanRepo(id int) error {
 	return err
 }
 
-// Cek pemilik pekerjaan dan status is_deleted
-func GetOwnerAndDeleteStatus(id int) (alumniUserID int, isDeleted *time.Time, err error) {
+// GetOwnerAndDeleteStatus akan mengembalikan user_id pemilik pekerjaan (jika ada) dan status is_deleted.
+// Jika pekerjaan tidak memiliki relasi ke alumni (a.user_id NULL), maka tetap dikembalikan tanpa error.
+func GetOwnerAndDeleteStatus(id int) (alumniUserID *int, isDeleted *time.Time, err error) {
 	err = database.DB.QueryRow(`
 		SELECT a.user_id, p.is_deleted
 		FROM pekerjaan_alumni p
-		JOIN alumni a ON p.alumni_id = a.id
+		LEFT JOIN alumni a ON p.alumni_id = a.id
 		WHERE p.id=$1`, id).Scan(&alumniUserID, &isDeleted)
 	return
 }

@@ -135,5 +135,13 @@ func NewApp() *fiber.App {
 	// Hard Delete: admin & owner, hanya jika is_deleted != null
 	pekerjaanMongo.Delete("/hard/:id", middleware.RoleMiddleware("admin", "user"), service.HardDeletePekerjaanMongo)
 
+
+	// ===== UPLOAD FILE =====
+	upload := api.Group("/upload", middleware.JWTMiddleware)
+	upload.Post("/", middleware.RoleMiddleware("admin", "user"), service.UploadFile)
+	upload.Get("/", middleware.RoleMiddleware("admin", "user"), service.GetAllUploads)
+	upload.Get("/:id", middleware.RoleMiddleware("admin", "user"), service.GetUploadByID)
+	upload.Delete("/:id", middleware.RoleMiddleware("admin", "user"), service.DeleteUpload)
+	
 	return app
 }

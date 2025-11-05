@@ -294,24 +294,42 @@ func RestorePekerjaanRBAC(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "Invalid user_id in token"})
 	}
 
-	// Cek siapa pemiliknya
-	alumniUserID, _, err := repository.GetOwnerAndDeleteStatus(idInt)
+	// Ambil pemilik pekerjaan (jika ada) dan status is_deleted
+	alumniUserID, isDeleted, err := repository.GetOwnerAndDeleteStatus(idInt)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "Pekerjaan tidak ditemukan"})
 	}
 
-	// Hanya admin atau pemilik
-	if role != "admin" && int(userID) != alumniUserID {
+	// Pastikan pekerjaan memang sudah dihapus (soft delete)
+	if isDeleted == nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Data belum dihapus (soft delete) sehingga tidak bisa direstore"})
+	}
+
+	// ===== Logika RBAC baru =====
+	if role == "admin" {
+		// Admin boleh restore tanpa peduli relasi
+		if err := repository.RestorePekerjaanRepo(idInt); err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.JSON(fiber.Map{"message": "Pekerjaan berhasil direstore oleh admin"})
+	}
+
+	// Jika user biasa dan pekerjaan tidak punya relasi (user_id NULL)
+	if alumniUserID == nil {
+		return c.Status(403).JSON(fiber.Map{"error": "Data ini tidak memiliki relasi ke akun mana pun"})
+	}
+
+	// Jika user biasa tapi bukan pemilik
+	if int(userID) != *alumniUserID {
 		return c.Status(403).JSON(fiber.Map{"error": "Forbidden: Anda hanya bisa me-restore pekerjaan Anda sendiri"})
 	}
 
-	// Restore
-	err = repository.RestorePekerjaanRepo(idInt)
-	if err != nil {
+	// Restore oleh user pemilik
+	if err := repository.RestorePekerjaanRepo(idInt); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(fiber.Map{"message": "Pekerjaan berhasil direstore"})
+	return c.JSON(fiber.Map{"message": "Pekerjaan berhasil direstore oleh user"})
 }
 
 // DELETE /api/pekerjaan/hard/:id
@@ -326,26 +344,39 @@ func HardDeletePekerjaanRBAC(c *fiber.Ctx) error {
 	userVal := c.Locals("user_id")
 
 	role, _ := roleVal.(string)
-	userID, ok := userVal.(float64)
+	userIDf, ok := userVal.(float64)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "Invalid user_id in token"})
 	}
+	userID := int(userIDf)
 
+	// ambil info owner & is_deleted (repository sekarang mengembalikan *int untuk alumniUserID)
 	alumniUserID, isDeleted, err := repository.GetOwnerAndDeleteStatus(idInt)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "Pekerjaan tidak ditemukan"})
 	}
 
+	// Pastikan sudah di-soft-delete dulu
 	if isDeleted == nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Data belum dihapus (soft delete) sehingga tidak bisa dihapus permanen"})
 	}
 
-	if role != "admin" && int(userID) != alumniUserID {
-		return c.Status(403).JSON(fiber.Map{"error": "Forbidden: Anda hanya bisa menghapus pekerjaan Anda sendiri"})
+	// RBAC:
+	// - Admin boleh hapus permanen meski tidak punya relasi
+	// - User biasa hanya boleh hapus kalau ada relasi dan dia pemilik
+	if role != "admin" {
+		// jika tidak ada relasi ke alumni/user -> tolak
+		if alumniUserID == nil {
+			return c.Status(403).JSON(fiber.Map{"error": "Data ini tidak memiliki relasi ke akun mana pun"})
+		}
+		// jika bukan pemilik -> tolak
+		if userID != *alumniUserID {
+			return c.Status(403).JSON(fiber.Map{"error": "Forbidden: Anda hanya bisa menghapus pekerjaan Anda sendiri"})
+		}
 	}
 
-	err = repository.HardDeletePekerjaanRepo(idInt)
-	if err != nil {
+	// lakukan hard delete
+	if err := repository.HardDeletePekerjaanRepo(idInt); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 
