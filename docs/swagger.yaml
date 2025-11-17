@@ -1,0 +1,1038 @@
+basePath: /api
+definitions:
+  model.Alumni:
+    properties:
+      alamat:
+        type: string
+      angkatan:
+        type: integer
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      jurusan:
+        type: string
+      nama:
+        type: string
+      nim:
+        type: string
+      no_telepon:
+        type: string
+      tahun_lulus:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  model.PekerjaanAlumni:
+    properties:
+      alumni_id:
+        type: integer
+      bidang_industri:
+        type: string
+      created_at:
+        type: string
+      deskripsi_pekerjaan:
+        type: string
+      gaji_range:
+        type: string
+      id:
+        type: integer
+      lokasi_kerja:
+        type: string
+      nama_perusahaan:
+        type: string
+      posisi_jabatan:
+        type: string
+      status_pekerjaan:
+        type: string
+      tanggal_mulai_kerja:
+        type: string
+      tanggal_selesai_kerja:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  model.PekerjaanMongo:
+    properties:
+      alumni_id:
+        type: integer
+      bidang_industri:
+        type: string
+      created_at:
+        type: string
+      deskripsi_pekerjaan:
+        type: string
+      gaji_range:
+        type: string
+      id:
+        type: string
+      is_deleted:
+        type: string
+      lokasi_kerja:
+        type: string
+      nama_perusahaan:
+        type: string
+      posisi_jabatan:
+        type: string
+      status_pekerjaan:
+        type: string
+      tanggal_mulai_kerja:
+        type: string
+      tanggal_selesai_kerja:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  model.Upload:
+    properties:
+      category:
+        description: '"foto" atau "sertifikat"'
+        type: string
+      file_name:
+        type: string
+      file_path:
+        type: string
+      file_size:
+        type: integer
+      file_type:
+        type: string
+      id:
+        type: string
+      original_name:
+        type: string
+      uploaded_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  service.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: https://github.com/yourusername
+  description: This is a RESTful API documentation for Praktikum 4 CRUD Project using
+    Go Fiber, PostgreSQL, and MongoDB.
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Praktikum 4 CRUD API Documentation
+  version: "1.0"
+paths:
+  /alumni:
+    get:
+      description: Get list of alumni with pagination, sorting, and search capabilities
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - default: id
+        description: Sort by field
+        in: query
+        name: sort
+        type: string
+      - default: desc
+        description: Sort order (asc/desc)
+        in: query
+        name: order
+        type: string
+      - description: Search by name
+        in: query
+        name: search
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get Alumni with Pagination, Sort, and Search
+      tags:
+      - Alumni
+    post:
+      consumes:
+      - application/json
+      description: Create a new alumni record
+      parameters:
+      - description: Alumni data
+        in: body
+        name: alumni
+        required: true
+        schema:
+          $ref: '#/definitions/model.Alumni'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Alumni'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Create Alumni
+      tags:
+      - Alumni
+  /alumni/{id}:
+    delete:
+      description: Delete an alumni record
+      parameters:
+      - description: Alumni ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Delete Alumni
+      tags:
+      - Alumni
+    get:
+      description: Get alumni details by their ID
+      parameters:
+      - description: Alumni ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Alumni'
+        "400":
+          description: Invalid ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Alumni not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get Alumni by ID
+      tags:
+      - Alumni
+    put:
+      consumes:
+      - application/json
+      description: Update an existing alumni record
+      parameters:
+      - description: Alumni ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Alumni data
+        in: body
+        name: alumni
+        required: true
+        schema:
+          $ref: '#/definitions/model.Alumni'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Update Alumni
+      tags:
+      - Alumni
+  /alumni/jumlah-angkatan:
+    get:
+      description: Get the count of alumni grouped by year (angkatan)
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get Jumlah Alumni by Angkatan
+      tags:
+      - Alumni
+  /alumni/jumlah-pekerjaan:
+    get:
+      description: Get list of alumni who have two or more jobs
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get Alumni dengan Dua atau Lebih Pekerjaan
+      tags:
+      - Alumni
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and get JWT token
+      parameters:
+      - description: Username and password
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/service.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid credentials
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: User Login
+      tags:
+      - Auth
+  /pekerjaan:
+    get:
+      description: Get list of all jobs (non-deleted)
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.PekerjaanAlumni'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get All Pekerjaan (PostgreSQL)
+      tags:
+      - Pekerjaan
+    post:
+      consumes:
+      - application/json
+      description: Create a new job record
+      parameters:
+      - description: Pekerjaan data
+        in: body
+        name: pekerjaan
+        required: true
+        schema:
+          $ref: '#/definitions/model.PekerjaanAlumni'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.PekerjaanAlumni'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Create Pekerjaan (PostgreSQL)
+      tags:
+      - Pekerjaan
+  /pekerjaan-mongo:
+    get:
+      description: Get list of active jobs (Admin sees all, User sees only their own)
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.PekerjaanMongo'
+            type: array
+        "404":
+          description: No active jobs found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get All Pekerjaan (MongoDB)
+      tags:
+      - Pekerjaan-MongoDB
+    post:
+      consumes:
+      - application/json
+      description: Create a new job record in MongoDB (Admin only)
+      parameters:
+      - description: Pekerjaan data
+        in: body
+        name: pekerjaan
+        required: true
+        schema:
+          $ref: '#/definitions/model.PekerjaanMongo'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.PekerjaanMongo'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Only admin can create
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Create Pekerjaan (MongoDB)
+      tags:
+      - Pekerjaan-MongoDB
+  /pekerjaan-mongo/{id}:
+    delete:
+      description: Soft delete a job (Admin or job owner)
+      parameters:
+      - description: Pekerjaan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Job not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Soft Delete Pekerjaan (MongoDB)
+      tags:
+      - Pekerjaan-MongoDB
+    get:
+      description: Get details of an active job
+      parameters:
+      - description: Pekerjaan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PekerjaanMongo'
+        "400":
+          description: Job is deleted
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Job not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get Pekerjaan by ID (MongoDB)
+      tags:
+      - Pekerjaan-MongoDB
+  /pekerjaan-mongo/hard/{id}:
+    delete:
+      description: Permanently delete a soft-deleted job (Admin or job owner)
+      parameters:
+      - description: Pekerjaan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Not soft-deleted
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Job not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Hard Delete Pekerjaan (MongoDB)
+      tags:
+      - Pekerjaan-MongoDB
+  /pekerjaan-mongo/restore/{id}:
+    put:
+      description: Restore a soft-deleted job (Admin or job owner)
+      parameters:
+      - description: Pekerjaan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Not soft-deleted
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Job not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Restore Pekerjaan (MongoDB)
+      tags:
+      - Pekerjaan-MongoDB
+  /pekerjaan/{id}:
+    delete:
+      description: Soft delete a job record (only admin and owner)
+      parameters:
+      - description: Pekerjaan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Job not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Soft Delete Pekerjaan with RBAC (PostgreSQL)
+      tags:
+      - Pekerjaan
+    get:
+      description: Get job details by ID
+      parameters:
+      - description: Pekerjaan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PekerjaanAlumni'
+        "404":
+          description: Job not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get Pekerjaan by ID (PostgreSQL)
+      tags:
+      - Pekerjaan
+    put:
+      consumes:
+      - application/json
+      description: Update an existing job record
+      parameters:
+      - description: Pekerjaan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Pekerjaan data
+        in: body
+        name: pekerjaan
+        required: true
+        schema:
+          $ref: '#/definitions/model.PekerjaanAlumni'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Update Pekerjaan (PostgreSQL)
+      tags:
+      - Pekerjaan
+  /pekerjaan/alumni/{alumni_id}:
+    get:
+      description: Get jobs of alumni associated with the logged-in user
+      parameters:
+      - description: Alumni ID
+        in: path
+        name: alumni_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.PekerjaanAlumni'
+            type: array
+        "401":
+          description: Invalid user_id in token
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get Pekerjaan by Alumni ID (PostgreSQL)
+      tags:
+      - Pekerjaan
+  /pekerjaan/hard/{id}:
+    delete:
+      description: Permanently delete a soft-deleted job (only admin and owner)
+      parameters:
+      - description: Pekerjaan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID or not soft-deleted
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Job not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Hard Delete Pekerjaan with RBAC (PostgreSQL)
+      tags:
+      - Pekerjaan
+  /pekerjaan/restore/{id}:
+    put:
+      description: Restore a soft-deleted job (only admin and owner)
+      parameters:
+      - description: Pekerjaan ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID or not soft-deleted
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Job not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Restore Pekerjaan with RBAC (PostgreSQL)
+      tags:
+      - Pekerjaan
+  /pekerjaan/trash:
+    get:
+      description: Get list of soft-deleted jobs (admin sees all, user sees their
+        own)
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.PekerjaanAlumni'
+            type: array
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: No deleted jobs found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get Trash Pekerjaan with RBAC (PostgreSQL)
+      tags:
+      - Pekerjaan
+  /upload:
+    get:
+      description: Get list of all uploaded files (Admin sees all, User sees their
+        own)
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Upload'
+            type: array
+        "404":
+          description: No files found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get All Uploads
+      tags:
+      - Upload
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload foto or sertifikat file to the server
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: File category (foto or sertifikat)
+        in: query
+        name: category
+        required: true
+        type: string
+      - description: Target user ID (admin only)
+        in: query
+        name: user_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid file
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Upload File
+      tags:
+      - Upload
+  /upload/{id}:
+    delete:
+      description: Delete an uploaded file (Admin or file owner)
+      parameters:
+      - description: Upload ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Delete Upload
+      tags:
+      - Upload
+    get:
+      description: Get details of an uploaded file
+      parameters:
+      - description: Upload ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Upload'
+        "400":
+          description: Invalid ID
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get Upload by ID
+      tags:
+      - Upload
+schemes:
+- http
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

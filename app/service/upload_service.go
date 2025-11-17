@@ -1,23 +1,35 @@
 package service
 
 import (
-    "context"
-    "fmt"
-    "os"
-    "path/filepath"
-    "praktikum4-crud/app/model"
-    "praktikum4-crud/app/repository"
-    "time"
+	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"praktikum4-crud/app/model"
+	"praktikum4-crud/app/repository"
+	"time"
 
-    "github.com/gofiber/fiber/v2"
-    "github.com/google/uuid"
-    "go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
 
 // ==================================
 // UPLOAD FILE (Admin/User)
 // ==================================
+// @Summary Upload File
+// @Description Upload foto or sertifikat file to the server
+// @Tags Upload
+// @Security Bearer
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "File to upload"
+// @Param category query string true "File category (foto or sertifikat)"
+// @Param user_id query int false "Target user ID (admin only)"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid file"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /upload [post]
 func UploadFile(c *fiber.Ctx) error {
     role := c.Locals("role").(string)
     userID := int(c.Locals("user_id").(float64))
@@ -50,21 +62,6 @@ func UploadFile(c *fiber.Ctx) error {
     if fileHeader.Size > maxSize {
         return c.Status(400).JSON(fiber.Map{"error": "Ukuran file melebihi batas"})
     }
-
-    // // Validasi tipe file
-    // allowed := map[string]bool{}
-    // if category == "foto" {
-    //     allowed = map[string]bool{
-    //         "image/jpeg": true, "image/jpg": true, "image/png": true,
-    //     }
-    // } else {
-    //     allowed = map[string]bool{"application/pdf": true}
-    // }
-
-    // contentType := fileHeader.Header.Get("Content-Type")
-    // if !allowed[contentType] {
-    //     return c.Status(400).JSON(fiber.Map{"error": "Format file tidak diperbolehkan"})
-    // }
     
     // Validasi tipe file berdasarkan kategori
 contentType := fileHeader.Header.Get("Content-Type")
@@ -121,6 +118,14 @@ if category == "foto" {
 // ==================================
 // GET ALL FILES
 // ==================================
+// @Summary Get All Uploads
+// @Description Get list of all uploaded files (Admin sees all, User sees their own)
+// @Tags Upload
+// @Security Bearer
+// @Success 200 {array} model.Upload
+// @Failure 404 {object} map[string]interface{} "No files found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /upload [get]
 func GetAllUploads(c *fiber.Ctx) error {
     role := c.Locals("role").(string)
     userID := int(c.Locals("user_id").(float64))
@@ -154,6 +159,16 @@ func GetAllUploads(c *fiber.Ctx) error {
 // ==================================
 // GET FILE BY ID
 // ==================================
+// @Summary Get Upload by ID
+// @Description Get details of an uploaded file
+// @Tags Upload
+// @Security Bearer
+// @Param id path string true "Upload ID"
+// @Success 200 {object} model.Upload
+// @Failure 400 {object} map[string]interface{} "Invalid ID"
+// @Failure 403 {object} map[string]interface{} "Forbidden"
+// @Failure 404 {object} map[string]interface{} "File not found"
+// @Router /upload/{id} [get]
 func GetUploadByID(c *fiber.Ctx) error {
     idStr := c.Params("id")
     objID, err := primitive.ObjectIDFromHex(idStr)
@@ -185,6 +200,17 @@ func GetUploadByID(c *fiber.Ctx) error {
 // ==================================
 // DELETE FILE (Admin/User Owner)
 // ==================================
+// @Summary Delete Upload
+// @Description Delete an uploaded file (Admin or file owner)
+// @Tags Upload
+// @Security Bearer
+// @Param id path string true "Upload ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid ID"
+// @Failure 403 {object} map[string]interface{} "Forbidden"
+// @Failure 404 {object} map[string]interface{} "File not found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /upload/{id} [delete]
 func DeleteUpload(c *fiber.Ctx) error {
     idStr := c.Params("id")
     objID, err := primitive.ObjectIDFromHex(idStr)

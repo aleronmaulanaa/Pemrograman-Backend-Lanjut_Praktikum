@@ -2,14 +2,21 @@ package service
 
 import (
 	"praktikum4-crud/app/model"
-	"praktikum4-crud/database"
 	"praktikum4-crud/app/repository"
-	"time"
+	"praktikum4-crud/database"
 	"strconv"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 )
 
-// GET ALL
+// @Summary Get All Pekerjaan (PostgreSQL)
+// @Description Get list of all jobs (non-deleted)
+// @Tags Pekerjaan
+// @Security Bearer
+// @Success 200 {array} model.PekerjaanAlumni
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /pekerjaan [get]
 func GetAllPekerjaan(c *fiber.Ctx) error {
 	rows, err := database.DB.Query(`
         SELECT id, alumni_id, nama_perusahaan, posisi_jabatan, bidang_industri, lokasi_kerja, gaji_range, 
@@ -48,7 +55,14 @@ func GetAllPekerjaan(c *fiber.Ctx) error {
 	return c.JSON(pekerjaanList)
 }
 
-// GET BY ID
+// @Summary Get Pekerjaan by ID (PostgreSQL)
+// @Description Get job details by ID
+// @Tags Pekerjaan
+// @Security Bearer
+// @Param id path int true "Pekerjaan ID"
+// @Success 200 {object} model.PekerjaanAlumni
+// @Failure 404 {object} map[string]interface{} "Job not found"
+// @Router /pekerjaan/{id} [get]
 func GetPekerjaanByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var p model.PekerjaanAlumni
@@ -76,7 +90,15 @@ func GetPekerjaanByID(c *fiber.Ctx) error {
 	return c.JSON(p)
 }
 
-// GET BY ALUMNI ID → diperbarui agar otomatis ambil dari JWT
+// @Summary Get Pekerjaan by Alumni ID (PostgreSQL)
+// @Description Get jobs of alumni associated with the logged-in user
+// @Tags Pekerjaan
+// @Security Bearer
+// @Param alumni_id path int true "Alumni ID"
+// @Success 200 {array} model.PekerjaanAlumni
+// @Failure 401 {object} map[string]interface{} "Invalid user_id in token"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /pekerjaan/alumni/{alumni_id} [get]
 func GetPekerjaanByAlumniID(c *fiber.Ctx) error {
 	// Ambil user_id dari JWT
 	userVal := c.Locals("user_id")
@@ -125,7 +147,17 @@ func GetPekerjaanByAlumniID(c *fiber.Ctx) error {
 }
 
 
-// CREATE
+// @Summary Create Pekerjaan (PostgreSQL)
+// @Description Create a new job record
+// @Tags Pekerjaan
+// @Security Bearer
+// @Accept json
+// @Produce json
+// @Param pekerjaan body model.PekerjaanAlumni true "Pekerjaan data"
+// @Success 201 {object} model.PekerjaanAlumni
+// @Failure 400 {object} map[string]interface{} "Invalid input"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /pekerjaan [post]
 func CreatePekerjaan(c *fiber.Ctx) error {
 	var p model.PekerjaanAlumni
 	if err := c.BodyParser(&p); err != nil {
@@ -160,7 +192,18 @@ func CreatePekerjaan(c *fiber.Ctx) error {
 	return c.Status(201).JSON(p)
 }
 
-// UPDATE
+// @Summary Update Pekerjaan (PostgreSQL)
+// @Description Update an existing job record
+// @Tags Pekerjaan
+// @Security Bearer
+// @Accept json
+// @Produce json
+// @Param id path int true "Pekerjaan ID"
+// @Param pekerjaan body model.PekerjaanAlumni true "Pekerjaan data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid input"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /pekerjaan/{id} [put]
 func UpdatePekerjaan(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var p model.PekerjaanAlumni
@@ -195,7 +238,15 @@ func UpdatePekerjaan(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Pekerjaan berhasil diupdate"})
 }
 
-// DELETE
+// @Summary Delete Pekerjaan (PostgreSQL)
+// @Description Permanently delete a job record
+// @Tags Pekerjaan
+// @Security Bearer
+// @Param id path int true "Pekerjaan ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid ID"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /pekerjaan/{id} [delete]
 func DeletePekerjaan(c *fiber.Ctx) error {
 	id := c.Params("id")
 
@@ -207,7 +258,17 @@ func DeletePekerjaan(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Pekerjaan berhasil dihapus"})
 }
 
-// DELETE dengan soft delete + RBAC
+// @Summary Soft Delete Pekerjaan with RBAC (PostgreSQL)
+// @Description Soft delete a job record (only admin and owner)
+// @Tags Pekerjaan
+// @Security Bearer
+// @Param id path int true "Pekerjaan ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid ID"
+// @Failure 403 {object} map[string]interface{} "Forbidden"
+// @Failure 404 {object} map[string]interface{} "Job not found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /pekerjaan/{id} [delete]
 func DeletePekerjaanRBAC(c *fiber.Ctx) error {
     idStr := c.Params("id")
     idInt, err := strconv.Atoi(idStr)
@@ -252,10 +313,18 @@ func DeletePekerjaanRBAC(c *fiber.Ctx) error {
         return c.Status(500).JSON(fiber.Map{"error": err.Error()})
     }
 
-    return c.JSON(fiber.Map{"message": "Pekerjaan berhasil dihapus oleh user"})
+	return c.JSON(fiber.Map{"message": "Pekerjaan berhasil dihapus oleh user"})
 }
 
-// GET /api/pekerjaan/trash
+// @Summary Get Trash Pekerjaan with RBAC (PostgreSQL)
+// @Description Get list of soft-deleted jobs (admin sees all, user sees their own)
+// @Tags Pekerjaan
+// @Security Bearer
+// @Success 200 {array} model.PekerjaanAlumni
+// @Failure 401 {object} map[string]interface{} "Invalid token"
+// @Failure 404 {object} map[string]interface{} "No deleted jobs found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /pekerjaan/trash [get]
 func GetTrashPekerjaanRBAC(c *fiber.Ctx) error {
 	roleVal := c.Locals("role")
 	userVal := c.Locals("user_id")
@@ -277,7 +346,17 @@ func GetTrashPekerjaanRBAC(c *fiber.Ctx) error {
 	return c.JSON(data)
 }
 
-// PUT /api/pekerjaan/restore/:id
+// @Summary Restore Pekerjaan with RBAC (PostgreSQL)
+// @Description Restore a soft-deleted job (only admin and owner)
+// @Tags Pekerjaan
+// @Security Bearer
+// @Param id path int true "Pekerjaan ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid ID or not soft-deleted"
+// @Failure 403 {object} map[string]interface{} "Forbidden"
+// @Failure 404 {object} map[string]interface{} "Job not found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /pekerjaan/restore/{id} [put]
 func RestorePekerjaanRBAC(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	idInt, err := strconv.Atoi(idStr)
@@ -332,7 +411,17 @@ func RestorePekerjaanRBAC(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Pekerjaan berhasil direstore oleh user"})
 }
 
-// DELETE /api/pekerjaan/hard/:id
+// @Summary Hard Delete Pekerjaan with RBAC (PostgreSQL)
+// @Description Permanently delete a soft-deleted job (only admin and owner)
+// @Tags Pekerjaan
+// @Security Bearer
+// @Param id path int true "Pekerjaan ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid ID or not soft-deleted"
+// @Failure 403 {object} map[string]interface{} "Forbidden"
+// @Failure 404 {object} map[string]interface{} "Job not found"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /pekerjaan/hard/{id} [delete]
 func HardDeletePekerjaanRBAC(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	idInt, err := strconv.Atoi(idStr)

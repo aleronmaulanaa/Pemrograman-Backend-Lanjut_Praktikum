@@ -12,6 +12,17 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+// @Summary User Login
+// @Description Authenticate user and get JWT token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param credentials body LoginRequest true "Username and password"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid input"
+// @Failure 401 {object} map[string]interface{} "Invalid credentials"
+// @Failure 500 {object} map[string]interface{} "Internal Server Error"
+// @Router /login [post]
 func Login(c *fiber.Ctx) error {
 	var req LoginRequest
 	if err := c.BodyParser(&req); err != nil {
